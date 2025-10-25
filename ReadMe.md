@@ -43,9 +43,6 @@ Redux Toolkit: Stores and syncs app data (user info, balance, transactions, etc.
 # Backend
 
 ```
-├── public/          # static files
-│   └── index.html   # html template
-│
 ├── src/             # project root
 │   ├── Controllers/
 │   ├── dtos/
