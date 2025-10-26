@@ -4,6 +4,7 @@ import express from "express"
 import rateLimit from "express-rate-limit"
 import helmet from "helmet"
 import router from "./routes/index.js"
+import { swaggerDocs } from "./utils/swagger.js"
 
 dotenv.config()
 const app = express()
@@ -13,8 +14,8 @@ app.use(cors())
 app.use(helmet())
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
 
-// Use your combined routes
 app.use("/api", router)
 
+swaggerDocs(app)
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`))

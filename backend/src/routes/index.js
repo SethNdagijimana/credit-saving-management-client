@@ -4,6 +4,80 @@ import User from "../models/User.js"
 
 const router = express.Router()
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Health check
+ *     description: Returns a simple welcome message to confirm API works.
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Welcome to Credit Jambo Client API
+ */
+
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password, deviceId]
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 example: secret123
+ *
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ */
+
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: User login
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password, deviceId]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 example: secret123
+ *
+ *     responses:
+ *       200:
+ *         description: Login successful (returns JWT)
+ */
+
 // Auth routes
 router.post("/auth/register", registerUser)
 router.post("/auth/login", loginUser)
