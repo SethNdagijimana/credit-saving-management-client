@@ -1,5 +1,6 @@
 import express from "express"
 import { loginUser, registerUser } from "../controllers/authController.js"
+import { authMiddleware } from "../middlewares/authMiddleware.js"
 import User from "../models/User.js"
 
 const router = express.Router()
@@ -94,6 +95,12 @@ router.get("/users", async (req, res) => {
 
 router.get("/", (req, res) => {
   res.json({ message: "Welcome to Credit Jambo Client API" })
+})
+
+router.get("/protected", authMiddleware, (req, res) => {
+  res.json({
+    message: `Welcome, ${req.user.name}! You are authorized.`
+  })
 })
 
 export default router

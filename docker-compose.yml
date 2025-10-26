@@ -4,14 +4,14 @@ services:
     container_name: credit-jambo-client-backend
     restart: always
     ports:
-      - "5002:5000"
+      - "5002:5002"
     env_file:
       - ./backend/.env
     environment:
       DB_URL: postgres://postgres:postgres@db:5432/credit_jambo
     networks:
-      - shared-db-network
+      - credit-jambo-admin_shared-db-network
 
 networks:
-  shared-db-network:
+  credit-jambo-admin_shared-db-network:
     external: true
