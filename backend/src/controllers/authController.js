@@ -48,12 +48,6 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body
 
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" })
-    }
-
-    // Find user by email (using model) ✅
     const user = await User.findByEmail(email)
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" })
@@ -65,23 +59,24 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" })
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    )
+    // ✅ CHECK IF DEVICE IS VERIFIED
+    // if (!user.verified) {
+    //   return res.status(403).json({
+    //     message:
+    //       "Your device is not verified yet. Please wait for admin approval.",
+    //     deviceId: user.device_id
+    //   })
+    // }
+
+    // Generate JWT
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "7d"
+    })
 
     res.json({
       message: "Login successful",
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        deviceId: user.device_id,
-        verified: user.verified
-      }
+      user: { id: user.id, name: user.name, email: user.email }
     })
   } catch (error) {
     console.error("Login error:", error)
