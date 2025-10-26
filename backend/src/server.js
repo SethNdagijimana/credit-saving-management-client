@@ -8,12 +8,12 @@ import router from "./routes/index.js"
 dotenv.config()
 const app = express()
 
-// Middleware
 app.use(express.json())
 app.use(cors())
 app.use(helmet())
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
 
+// Use your combined routes
 app.use("/api", router)
 
 const PORT = process.env.PORT || 5000
