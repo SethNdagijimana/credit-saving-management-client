@@ -59,14 +59,14 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" })
     }
 
-    // ✅ CHECK IF DEVICE IS VERIFIED
-    // if (!user.verified) {
-    //   return res.status(403).json({
-    //     message:
-    //       "Your device is not verified yet. Please wait for admin approval.",
-    //     deviceId: user.device_id
-    //   })
-    // }
+    //✅ CHECK IF DEVICE IS VERIFIED
+    if (!user.verified) {
+      return res.status(403).json({
+        message:
+          "Your device is not verified yet. Please wait for admin approval.",
+        deviceId: user.device_id
+      })
+    }
 
     // Generate JWT
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
