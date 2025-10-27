@@ -15,12 +15,12 @@ class User {
   }
 
   // Create new user
-  static async create({ name, email, password, deviceId }) {
+  static async create({ name, email, password, salt, deviceId }) {
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, device_id, verified)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, email, device_id, verified, created_at`,
-      [name, email, password, deviceId, false]
+      `INSERT INTO users (name, email, password, salt, device_id, verified)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, name, email, device_id, verified, created_at`,
+      [name, email, password, salt, deviceId, false]
     )
     return result.rows[0]
   }
