@@ -1,0 +1,177 @@
+openapi: 3.0.0
+info:
+  title: Credit Jambo Client API
+  version: "1.0.0"
+  description: API for client authentication, savings deposits, withdrawals and transaction tracking.
+
+servers:
+  - url: http://localhost:5002/api
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterUser:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginUser:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    TransactionRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          minimum: 0.01
+        description:
+          type: string
+
+    TransactionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        amount:
+          type: number
+        description:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        oldBalance:
+          type: number
+        newBalance:
+          type: number
+        deviceId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+tags:
+  - name: Auth
+    description: Authentication & user identity routes
+  - name: Savings
+    description: Deposit, withdrawal, and financial transactions
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags: ["Auth"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUser"
+      responses:
+        "201":
+          description: Registration successful
+
+  /auth/login:
+    post:
+      summary: User login with token issuance
+      tags: ["Auth"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginUser"
+      responses:
+        "200":
+          description: Login successful
+
+  /savings/deposit:
+    post:
+      summary: Deposit money
+      tags: ["Savings"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+      responses:
+        "200":
+          description: Deposit successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+
+  /savings/withdraw:
+    post:
+      summary: Withdraw money
+      tags: ["Savings"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+      responses:
+        "200":
+          description: Withdrawal successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+
+  /savings/transactions:
+    get:
+      summary: Get user transaction history
+      tags: ["Savings"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of transactions
+
+  /users:
+    get:
+      summary: Get all users (ADMIN ONLY)
+      tags: ["Admin"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of all users
+      "403":
+        description: Forbidden - Admin access required

@@ -1,85 +1,53 @@
-import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { v4 as uuidv4 } from "uuid"
-import User from "../models/User.js"
+import { userDTO } from "../dtos/userDTO.js"
+import {
+  loginUserService,
+  registerUserService
+} from "../services/userService.js"
 
-// REGISTER
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body
 
-    // Validate input
-    if (!name || !email || !password) {
+    if (!name || !email || !password)
       return res.status(400).json({ message: "All fields are required" })
-    }
 
-    // Check if email exists (using model) ✅
-    const existing = await User.findByEmail(email)
-    if (existing) {
-      return res.status(400).json({ message: "Email already exists" })
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Generate unique device ID
     const deviceId = uuidv4()
-
-    // Create user (using model) ✅
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      deviceId
-    })
+    const newUser = await registerUserService(name, email, password, deviceId)
 
     res.status(201).json({
       message: "User registered successfully",
-      user: newUser
+      user: userDTO(newUser)
     })
-  } catch (error) {
-    console.error("Registration error:", error)
-    res.status(500).json({ message: "Server error" })
+  } catch (err) {
+    res.status(400).json({ message: err.message })
   }
 }
 
-// LOGIN
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body
 
-    const user = await User.findByEmail(email)
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" })
-    }
+    const result = await loginUserService(email, password)
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" })
-    }
-
-    //✅ CHECK IF DEVICE IS VERIFIED
-    if (!user.verified) {
+    if (result.notVerified) {
       return res.status(403).json({
-        message:
-          "Your device is not verified yet. Please wait for admin approval.",
-        deviceId: user.device_id
+        message: "Device not verified. Wait for admin approval.",
+        deviceId: result.deviceId
       })
     }
 
-    // Generate JWT
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "7d"
+    const token = jwt.sign({ id: result.user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h"
     })
 
     res.json({
       message: "Login successful",
       token,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: userDTO(result.user)
     })
-  } catch (error) {
-    console.error("Login error:", error)
-    res.status(500).json({ message: "Server error" })
+  } catch (err) {
+    res.status(400).json({ message: err.message })
   }
 }
