@@ -11,6 +11,10 @@ import User from "../models/User.js"
 
 // ✅ Validation imports
 import { body } from "express-validator"
+import {
+  getMyNotifications,
+  markRead
+} from "../controllers/notificationController.js"
 import { adminMiddleware } from "../middlewares/adminMiddleware.js"
 import { validate } from "../middlewares/validationMiddleware.js"
 
@@ -64,6 +68,8 @@ router.post(
 )
 
 router.get("/savings/transactions", authMiddleware, getMyTransactions)
+router.get("/notifications", authMiddleware, getMyNotifications)
+router.patch("/mark-read", authMiddleware, markRead)
 
 router.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
   const users = await User.findAll()

@@ -1,3 +1,4 @@
+import Notification from "../models/Notification.js"
 import Transaction from "../models/Transaction.js"
 import pool from "../utils/db.js"
 
@@ -9,27 +10,19 @@ export const depositService = async (userId, amount, description, deviceId) => {
     [userId]
   )
   const oldBalanceRaw = userResult.rows[0]?.balance ?? "0"
-  const oldBalance = parseFloat(oldBalanceRaw) || 0.0
+  const oldBalance = parseFloat(oldBalanceRaw) || 0
 
   const depositAmount = parseFloat(amount)
   if (Number.isNaN(depositAmount)) throw new Error("Invalid amount")
 
-  const newBalanceUnrounded = oldBalance + depositAmount
-  const newBalance = Number(newBalanceUnrounded.toFixed(2))
+  const newBalance = Number((oldBalance + depositAmount).toFixed(2))
 
-  // Persist rounded balance to users table
+  // Persist new balance
   await pool.query("UPDATE users SET balance = $1 WHERE id = $2", [
     newBalance,
     userId
   ])
 
-  // Update balance
-  await pool.query("UPDATE users SET balance = $1 WHERE id = $2", [
-    newBalance,
-    userId
-  ])
-
-  // Create transaction
   const transaction = await Transaction.create({
     userId,
     type: "deposit",
@@ -38,8 +31,21 @@ export const depositService = async (userId, amount, description, deviceId) => {
     deviceId,
     newBalance
   })
+  if (newBalance < 100) {
+    await Notification.create({
+      userId,
+      type: "low_balance",
+      message: `⚠️ Your balance is low: ${newBalance}`
+    })
+  }
 
-  return { oldBalance: Number(oldBalance.toFixed(2)), newBalance, transaction }
+  await Notification.create({
+    userId,
+    type: "deposit",
+    message: `Deposit of ${depositAmount} was successful`
+  })
+
+  return { oldBalance, newBalance, transaction }
 }
 
 export const withdrawService = async (
@@ -48,17 +54,18 @@ export const withdrawService = async (
   description,
   deviceId
 ) => {
-  if (amount <= 0) throw new Error("Amount must be greater than 0")
+  if (Number(amount) <= 0) throw new Error("Amount must be greater than 0")
 
   const userResult = await pool.query(
     "SELECT balance FROM users WHERE id = $1",
     [userId]
   )
-  const oldBalance = userResult.rows[0]?.balance ?? 0
+  const oldBalance = parseFloat(userResult.rows[0]?.balance ?? "0") || 0
+  const withdrawAmount = parseFloat(amount)
 
-  if (oldBalance < amount) throw new Error("Insufficient balance")
+  if (oldBalance < withdrawAmount) throw new Error("Insufficient balance")
 
-  const newBalance = oldBalance - Number(amount)
+  const newBalance = Number((oldBalance - withdrawAmount).toFixed(2))
 
   await pool.query("UPDATE users SET balance = $1 WHERE id = $2", [
     newBalance,
@@ -68,10 +75,16 @@ export const withdrawService = async (
   const transaction = await Transaction.create({
     userId,
     type: "withdraw",
-    amount,
+    amount: withdrawAmount,
     description,
     deviceId,
     newBalance
+  })
+
+  await Notification.create({
+    userId,
+    type: "withdraw",
+    message: `Withdrawal of ${withdrawAmount} was successful`
   })
 
   return { oldBalance, newBalance, transaction }
