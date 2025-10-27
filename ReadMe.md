@@ -20,6 +20,12 @@ Redux Toolkit: Stores and syncs app data (user info, balance, transactions, etc.
 
 # Savings Management System Structure
 
+Client Server: http://localhost:5002/api
+
+Swagger Docs: http://localhost:5002/api-docs
+
+Note: JWT required for /savings/_ and /notifications/_
+
 # FrontEnd
 
 ```

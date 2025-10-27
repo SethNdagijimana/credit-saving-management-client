@@ -10,7 +10,7 @@ import { authMiddleware } from "../middlewares/authMiddleware.js"
 import User from "../models/User.js"
 
 // ✅ Validation imports
-import { body } from "express-validator"
+import { body, query } from "express-validator"
 import {
   getMyNotifications,
   markRead
@@ -67,7 +67,16 @@ router.post(
   withdraw
 )
 
-router.get("/savings/transactions", authMiddleware, getMyTransactions)
+router.get(
+  "/savings/transactions",
+  authMiddleware,
+  [
+    query("page").optional().isInt({ min: 1 }),
+    query("limit").optional().isInt({ min: 1, max: 100 })
+  ],
+  validate,
+  getMyTransactions
+)
 router.get("/notifications", authMiddleware, getMyNotifications)
 router.patch("/mark-read", authMiddleware, markRead)
 
