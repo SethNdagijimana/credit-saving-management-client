@@ -8,40 +8,37 @@ class User {
     return result.rows[0]
   }
 
-  // Find user by ID
   static async findById(id) {
     const result = await pool.query("SELECT * FROM users WHERE id = $1", [id])
     return result.rows[0]
   }
 
-  // Create new user
-  static async create({ name, email, password, salt, deviceId }) {
+  static async create({ name, email, password, phone_number, salt, deviceId }) {
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, salt, device_id, verified)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING id, name, email, device_id, verified, created_at`,
-      [name, email, password, salt, deviceId, false]
+      `INSERT INTO users (name, email, password, phone_number, salt, device_id, verified)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, name, email, phone_number, device_id, verified, created_at`,
+      [name, email, password, phone_number, salt, deviceId, false]
     )
     return result.rows[0]
   }
 
-  // Update user
   static async update(id, updates) {
-    const { name, email, verified } = updates
+    const { name, email, phone_number, verified } = updates
     const result = await pool.query(
       `UPDATE users
        SET name = COALESCE($1, name),
            email = COALESCE($2, email),
-           verified = COALESCE($3, verified),
+           phone_number= COALESCE($3, phone_number),
+           verified = COALESCE($4, verified),
            updated_at = NOW()
        WHERE id = $4
-       RETURNING id, name, email, device_id, verified`,
-      [name, email, verified, id]
+       RETURNING id, name, email, phone_number, device_id, verified`,
+      [name, email, phone_number, verified, id]
     )
     return result.rows[0]
   }
 
-  // Delete user
   static async delete(id) {
     const result = await pool.query(
       "DELETE FROM users WHERE id = $1 RETURNING id",
@@ -50,10 +47,9 @@ class User {
     return result.rows[0]
   }
 
-  // Get all users
   static async findAll() {
     const result = await pool.query(
-      "SELECT id, name, email, device_id, verified, created_at FROM users ORDER BY created_at DESC"
+      "SELECT id, name, email, phone_number, device_id, verified, created_at FROM users ORDER BY created_at DESC"
     )
     return result.rows
   }

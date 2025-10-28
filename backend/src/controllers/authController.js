@@ -8,13 +8,19 @@ import {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body
+    const { name, email, password, phone_number } = req.body
 
-    if (!name || !email || !password)
+    if (!name || !email || !password || !phone_number)
       return res.status(400).json({ message: "All fields are required" })
 
     const deviceId = uuidv4()
-    const newUser = await registerUserService(name, email, password, deviceId)
+    const newUser = await registerUserService(
+      name,
+      email,
+      password,
+      phone_number,
+      deviceId
+    )
 
     res.status(201).json({
       message: "User registered successfully",

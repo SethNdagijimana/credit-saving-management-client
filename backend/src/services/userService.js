@@ -1,7 +1,13 @@
 import User from "../models/User.js"
 import { hashPassword, verifyPassword } from "../utils/passwordUtils.js"
 
-export const registerUserService = async (name, email, password, deviceId) => {
+export const registerUserService = async (
+  name,
+  email,
+  password,
+  phone_number,
+  deviceId
+) => {
   const existing = await User.findByEmail(email)
   if (existing) throw new Error("Email already exists")
 
@@ -11,6 +17,7 @@ export const registerUserService = async (name, email, password, deviceId) => {
     name,
     email,
     password: hash,
+    phone_number,
     salt,
     deviceId
   })
