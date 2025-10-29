@@ -16,12 +16,10 @@ components:
       bearerFormat: JWT
 
   schemas:
+    # ---------------- AUTH ----------------
     RegisterUser:
       type: object
-      required:
-        - name
-        - email
-        - password
+      required: [name, email, password]
       properties:
         name:
           type: string
@@ -33,9 +31,7 @@ components:
 
     LoginUser:
       type: object
-      required:
-        - email
-        - password
+      required: [email, password]
       properties:
         email:
           type: string
@@ -43,10 +39,18 @@ components:
         password:
           type: string
 
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+
+    # ---------------- SAVINGS ----------------
     TransactionRequest:
       type: object
-      required:
-        - amount
+      required: [amount]
       properties:
         amount:
           type: number
@@ -57,39 +61,75 @@ components:
     TransactionResponse:
       type: object
       properties:
-        id:
-          type: integer
-        type:
+        message:
           type: string
-        amount:
-          type: number
-        description:
-          type: string
-        userId:
-          type: integer
-        userName:
-          type: string
-        oldBalance:
-          type: number
-        newBalance:
-          type: number
-        deviceId:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
+        transaction:
+          type: object
+          properties:
+            id:
+              type: integer
+            type:
+              type: string
+              enum: [deposit, withdraw]
+            amount:
+              type: number
+            description:
+              type: string
+            userId:
+              type: integer
+            userName:
+              type: string
+            oldBalance:
+              type: number
+            newBalance:
+              type: number
+            accountNumber:
+              type: string
+            deviceId:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+        account:
+          type: object
+          properties:
+            account_number:
+              type: string
+            balance:
+              type: number
+
+    PaginatedTransactionsResponse:
+      type: object
+      properties:
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionResponse/properties/transaction"
 
 tags:
   - name: Auth
     description: Authentication & user identity routes
   - name: Savings
     description: Deposit, withdrawal, and financial transactions
+  - name: Admin
+    description: Admin-only routes
 
 paths:
   /auth/register:
     post:
       summary: Register a new user
-      tags: ["Auth"]
+      tags: [Auth]
       requestBody:
         required: true
         content:
@@ -99,11 +139,13 @@ paths:
       responses:
         "201":
           description: Registration successful
+        "400":
+          description: Email already exists
 
   /auth/login:
     post:
-      summary: User login with token issuance
-      tags: ["Auth"]
+      summary: User login with JWT issuance
+      tags: [Auth]
       requestBody:
         required: true
         content:
@@ -113,11 +155,15 @@ paths:
       responses:
         "200":
           description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
 
   /savings/deposit:
     post:
       summary: Deposit money
-      tags: ["Savings"]
+      tags: [Savings]
       security:
         - bearerAuth: []
       requestBody:
@@ -137,7 +183,7 @@ paths:
   /savings/withdraw:
     post:
       summary: Withdraw money
-      tags: ["Savings"]
+      tags: [Savings]
       security:
         - bearerAuth: []
       requestBody:
@@ -156,22 +202,37 @@ paths:
 
   /savings/transactions:
     get:
-      summary: Get user transaction history
-      tags: ["Savings"]
+      summary: Get user transaction history with pagination
+      tags: [Savings]
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
       responses:
         "200":
-          description: List of transactions
+          description: List of transactions with pagination data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTransactionsResponse"
 
   /users:
     get:
       summary: Get all users (ADMIN ONLY)
-      tags: ["Admin"]
+      tags: [Admin]
       security:
         - bearerAuth: []
       responses:
         "200":
           description: List of all users
-      "403":
-        description: Forbidden - Admin access required
+        "403":
+          description: Forbidden - Admin access required

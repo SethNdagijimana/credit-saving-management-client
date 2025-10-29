@@ -12,6 +12,21 @@ services:
     networks:
       - credit-jambo-admin_shared-db-network
 
+  client-frontend:
+    build: ./frontend
+    container_name: credit-jambo-client-frontend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      REACT_APP_CLIENT_API: http://localhost:5002/api
+    depends_on:
+      - backend
+    networks:
+      - credit-jambo-admin_shared-db-network
+
 networks:
   credit-jambo-admin_shared-db-network:
     external: true
