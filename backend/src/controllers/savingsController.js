@@ -10,12 +10,8 @@ export const deposit = async (req, res) => {
     const { amount, description } = req.body
     const user = req.user
 
-    const { oldBalance, newBalance, transaction } = await depositService(
-      user.id,
-      amount,
-      description,
-      user.deviceId
-    )
+    const { oldBalance, newBalance, transaction, account } =
+      await depositService(user.id, amount, description, user.deviceId)
 
     res.json({
       message: "Deposit successful",
@@ -23,8 +19,10 @@ export const deposit = async (req, res) => {
         ...transaction,
         userName: user.name,
         oldBalance,
-        newBalance
-      })
+        newBalance,
+        accountNumber: account.account_number
+      }),
+      account
     })
   } catch (err) {
     res.status(400).json({ message: err.message })
@@ -36,12 +34,8 @@ export const withdraw = async (req, res) => {
     const { amount, description } = req.body
     const user = req.user
 
-    const { oldBalance, newBalance, transaction } = await withdrawService(
-      user.id,
-      amount,
-      description,
-      user.deviceId
-    )
+    const { oldBalance, newBalance, transaction, account } =
+      await withdrawService(user.id, amount, description, user.deviceId)
 
     res.json({
       message: "Withdrawal successful",
@@ -49,8 +43,10 @@ export const withdraw = async (req, res) => {
         ...transaction,
         userName: user.name,
         oldBalance,
-        newBalance
-      })
+        newBalance,
+        accountNumber: account.account_number
+      }),
+      account
     })
   } catch (err) {
     res.status(400).json({ message: err.message })

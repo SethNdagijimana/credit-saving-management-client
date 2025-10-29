@@ -1,3 +1,4 @@
+import Account from "../models/Account.js"
 import User from "../models/User.js"
 import { hashPassword, verifyPassword } from "../utils/passwordUtils.js"
 
@@ -5,8 +6,7 @@ export const registerUserService = async (
   name,
   email,
   password,
-  phone_number,
-  deviceId
+  phone_number
 ) => {
   const existing = await User.findByEmail(email)
   if (existing) throw new Error("Email already exists")
@@ -18,11 +18,12 @@ export const registerUserService = async (
     email,
     password: hash,
     phone_number,
-    salt,
-    deviceId
+    salt
   })
 
-  return newUser
+  const account = await Account.createForUser(newUser.id)
+
+  return { user: newUser, account }
 }
 
 export const loginUserService = async (email, password) => {
@@ -31,13 +32,6 @@ export const loginUserService = async (email, password) => {
 
   const valid = verifyPassword(password, user.salt, user.password)
   if (!valid) throw new Error("Invalid credentials")
-
-  if (!user.verified) {
-    return {
-      notVerified: true,
-      deviceId: user.device_id
-    }
-  }
 
   return { user }
 }

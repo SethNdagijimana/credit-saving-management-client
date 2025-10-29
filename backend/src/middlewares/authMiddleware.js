@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken"
+import Device from "../models/Device.js"
 import User from "../models/User.js"
 
 export const authMiddleware = async (req, res, next) => {
@@ -18,22 +19,42 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" })
     }
 
-    if (!user.verified) {
-      return res.status(403).json({
-        message: "Device not verified by admin",
-        deviceId: user.device_id
+    const deviceId =
+      req.headers["x-device-id"] || req.body.deviceId || req.query.deviceId
+
+    if (!deviceId) {
+      return res.status(400).json({
+        message: "Device ID missing. Include x-device-id header."
       })
     }
 
-    // Assign clean user object to req.user
+    const device = await Device.findByUserAndDevice(user.id, deviceId)
+
+    if (!device) {
+      return res.status(403).json({
+        message: "Device not registered",
+        deviceId
+      })
+    }
+
+    if (!device.is_verified) {
+      return res.status(403).json({
+        message: "Device not verified. Please verify your device.",
+        deviceId
+      })
+    }
+
     req.user = {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      verified: user.verified,
-      deviceId: user.device_id
+      deviceId
     }
+
+    Device.markSeen(deviceId, req.ip, req.get("User-Agent")).catch(
+      console.error
+    )
 
     next()
   } catch (error) {
