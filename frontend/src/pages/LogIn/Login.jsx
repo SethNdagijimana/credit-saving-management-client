@@ -102,19 +102,19 @@ const Login = () => {
         }))
       }
     } catch (err) {
-      let errorMessage = "An error occurred during login. Please try again."
+      console.error("Login error:", err)
 
-      if (err?.response?.status === 401) {
-        errorMessage =
-          "Invalid email or password. Please check your credentials."
-      } else if (err?.response?.status === 429) {
-        errorMessage = "Too many login attempts. Please try again later."
-      } else if (err?.response?.status >= 500) {
-        errorMessage = "Server error. Please try again later."
-      } else if (err?.message) {
-        errorMessage = err.message
-      } else if (err?.response?.data?.message) {
-        errorMessage = err.response.data.message
+      let errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        err ||
+        "Invalid email or password. Please try again."
+
+      if (
+        errorMessage.toLowerCase().includes("invalid") ||
+        errorMessage.toLowerCase().includes("unauthorized")
+      ) {
+        errorMessage = "Invalid email or password."
       }
 
       setErrors((prev) => ({ ...prev, submit: errorMessage }))
@@ -256,6 +256,14 @@ const Login = () => {
                   >
                     {loading ? "Signing in..." : "Sign In"}
                   </button>
+
+                  {errors.submit && (
+                    <div className="mt-3 text-center">
+                      <p className="text-sm font-medium text-red-600">
+                        {errors.submit}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </form>
             )}

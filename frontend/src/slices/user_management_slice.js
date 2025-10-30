@@ -84,6 +84,7 @@ const userManagementSlice = createSlice({
     clearError: (state) => {
       state.error = false
       state.message = ""
+      state.success = ""
       state.errorCode = ""
     }
   },
