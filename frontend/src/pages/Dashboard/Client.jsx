@@ -2,6 +2,7 @@ import { Gauge, ShieldCheck, Users } from "lucide-react"
 import { Route, Routes } from "react-router-dom"
 import AppNavBar from "../../components/AppNavBar"
 import ClientDashboard from "../../components/ClientDashboard/ClientDashboard"
+import Deposit from "../../components/Deposit/Deposit"
 import DashboardLayout from "./DashboardLayout"
 
 const menuItems = [
@@ -42,7 +43,7 @@ const Client = () => {
           content: (
             <Routes>
               <Route path="/" element={<ClientDashboard />} />
-              <Route path="/deposit" element={<div>Deposit</div>} />
+              <Route path="/deposit" element={<Deposit />} />
               <Route path="/withdraw" element={<div>withdraw</div>} />
               <Route
                 path="/transaction-history"
