@@ -1,4 +1,6 @@
 import axios from "axios"
+import { logout } from "../slices/user_management_slice"
+
 const url = process.env.REACT_APP_BASE_URL
 
 let isRefreshing = false
@@ -57,6 +59,43 @@ apiCall.interceptors.request.use(
     return config
   },
   (error) => Promise.reject(error)
+)
+
+apiCall.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config
+
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true
+
+      const message = error.response?.data?.message?.toLowerCase() || ""
+
+      if (
+        message.includes("expired") ||
+        message.includes("invalid token") ||
+        message.includes("unauthorized")
+      ) {
+        console.warn(" Token expired or invalid — logging out user.")
+
+        if (store) {
+          store.dispatch(logout())
+        }
+
+        localStorage.removeItem("accessToken")
+        localStorage.removeItem("refreshToken")
+        localStorage.removeItem("user")
+
+        window.location.href = "/"
+      }
+    }
+
+    return Promise.reject(error)
+  }
 )
 
 export default apiCall

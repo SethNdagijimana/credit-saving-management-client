@@ -1,10 +1,4 @@
-import {
-  AlertCircle,
-  Building,
-  CheckCircle,
-  CreditCard,
-  TrendingUp
-} from "lucide-react"
+import { AlertCircle, CheckCircle, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { toast } from "react-toastify"
@@ -35,12 +29,6 @@ const Deposit = () => {
     method: "bank_transfer"
   })
 
-  const depositMethods = [
-    { id: "bank_transfer", name: "Bank Transfer", icon: Building, fee: 0 },
-    { id: "debit_card", name: "Debit Card", icon: CreditCard, fee: 2.5 },
-    { id: "credit_card", name: "Credit Card", icon: CreditCard, fee: 3.5 }
-  ]
-
   const quickAmounts = [100, 500, 1000, 5000]
 
   const handleDeposit = async () => {
@@ -67,19 +55,6 @@ const Deposit = () => {
 
   const handleQuickAmount = (amount) => {
     setDepositForm({ ...depositForm, amount: amount.toString() })
-  }
-
-  const calculateFee = () => {
-    const amount = parseFloat(depositForm.amount) || 0
-    const selectedMethod = depositMethods.find(
-      (m) => m.id === depositForm.method
-    )
-    return (amount * selectedMethod.fee) / 100
-  }
-
-  const calculateTotal = () => {
-    const amount = parseFloat(depositForm.amount) || 0
-    return amount + calculateFee()
   }
 
   return (
@@ -173,65 +148,6 @@ const Deposit = () => {
             ))}
           </div>
 
-          {/* 🏧 Deposit Method */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Deposit Method
-            </label>
-            <div className="space-y-2">
-              {depositMethods.map((method) => {
-                const Icon = method.icon
-                return (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() =>
-                      setDepositForm({ ...depositForm, method: method.id })
-                    }
-                    className={`w-full p-4 border-2 rounded-lg flex justify-between items-center ${
-                      depositForm.method === method.id
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-300 hover:border-green-300"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`p-2 rounded-lg ${
-                          depositForm.method === method.id
-                            ? "bg-green-100"
-                            : "bg-gray-100"
-                        }`}
-                      >
-                        <Icon
-                          size={20}
-                          className={
-                            depositForm.method === method.id
-                              ? "text-green-600"
-                              : "text-gray-600"
-                          }
-                        />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">
-                          {method.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {method.fee === 0
-                            ? "No fees"
-                            : `${method.fee}% fee applied`}
-                        </p>
-                      </div>
-                    </div>
-                    {depositForm.method === method.id && (
-                      <CheckCircle className="text-green-500" size={18} />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* 📝 Description */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Description (Optional)
@@ -247,34 +163,6 @@ const Deposit = () => {
             />
           </div>
 
-          {/* 🧾 Summary */}
-          {depositForm.amount && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-              <h4 className="font-semibold text-gray-800 mb-2">
-                Transaction Summary
-              </h4>
-              <div className="flex justify-between text-sm">
-                <span>Deposit Amount</span>
-                <span className="font-semibold">
-                  RWF {parseFloat(depositForm.amount).toLocaleString()}
-                </span>
-              </div>
-              {calculateFee() > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span>Processing Fee</span>
-                  <span className="font-semibold">
-                    RWF {calculateFee().toLocaleString()}
-                  </span>
-                </div>
-              )}
-              <div className="border-t mt-2 pt-2 flex justify-between font-semibold text-green-700">
-                <span>Total</span>
-                <span>RWF {calculateTotal().toLocaleString()}</span>
-              </div>
-            </div>
-          )}
-
-          {/* 💾 Submit */}
           <button
             onClick={handleDeposit}
             disabled={loading}
