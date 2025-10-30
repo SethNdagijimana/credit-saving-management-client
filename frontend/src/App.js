@@ -1,7 +1,9 @@
-import { Suspense } from "react"
+import React, { Suspense } from "react"
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import HomePage from "./pages/HomePage/HomePage"
-import Login from "./pages/LogIn/Login"
+
+const HomePage = React.lazy(() => import("./pages/HomePage/HomePage"))
+const Login = React.lazy(() => import("./pages/LogIn/Login"))
+const Client = React.lazy(() => import("./pages/Dashboard/Client"))
 
 const loading = (
   <div className="pt-3 text-center">
@@ -14,6 +16,7 @@ const AppRoutes = () => {
     <Routes>
       <Route exact path="/" name="home" element={<HomePage />} />
       <Route exact path="/login" name="Login" element={<Login />} />
+      <Route exact path="/dashboard/*" element={<Client />} />
       {/* <Route
         path="/dashboard/*"
         element={
