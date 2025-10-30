@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import apiCall from "../../helper/http"
+import { logout } from "../../slices/user_management_slice"
 
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
@@ -49,3 +50,18 @@ export const loginUser = createAsyncThunk(
     }
   }
 )
+
+export const logoutAction = createAsyncThunk(
+  "auth/logout",
+  async (_, { dispatch }) => {
+    localStorage.removeItem("accessToken")
+    localStorage.removeItem("refreshToken")
+    localStorage.removeItem("user")
+
+    dispatch(logout())
+
+    dispatch({ type: "LOGOUT" })
+  }
+)
+
+export const LOGOUT = "LOGOUT"

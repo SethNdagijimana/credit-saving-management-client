@@ -186,7 +186,7 @@ const Login = () => {
                             ? "border-red-500 focus:ring-red-500 focus:border-red-500"
                             : "border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
                         } rounded-xl focus:ring-2 transition-all outline-none text-sm sm:text-base`}
-                        placeholder="admin@creditjambo.com"
+                        placeholder="user@exampl.com"
                         autoComplete="email"
                         disabled={loading}
                       />

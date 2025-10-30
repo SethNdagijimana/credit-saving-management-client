@@ -21,12 +21,18 @@ const persistConfig = {
 const persistedReducer = persistReducer(persistConfig, rootReducer)
 
 const CreditAppReducer = (state, action) => {
-  if (action.type === "LOGOUT") {
-    storage.removeItem("persist:root")
-    localStorage.removeItem("token")
-    state = undefined
+  switch (action.type) {
+    case "LOGOUT":
+      state = undefined
+      storage.removeItem("persist:root")
+      localStorage.removeItem("token")
+      break
+    case "persist/PERSIST":
+    case "persist/REHYDRATE":
+    case "@@INIT":
+      break
+    default:
   }
-
   return persistedReducer(state, action)
 }
 
