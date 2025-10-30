@@ -1,5 +1,7 @@
 import React, { Suspense } from "react"
 import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { ToastContainer } from "react-toastify"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 const HomePage = React.lazy(() => import("./pages/HomePage/HomePage"))
 const Login = React.lazy(() => import("./pages/LogIn/Login"))
@@ -16,15 +18,15 @@ const AppRoutes = () => {
     <Routes>
       <Route exact path="/" name="home" element={<HomePage />} />
       <Route exact path="/login" name="Login" element={<Login />} />
-      <Route exact path="/dashboard/*" element={<Client />} />
-      {/* <Route
+
+      <Route
         path="/dashboard/*"
         element={
-          <ProtectedRoute requiredType={["admin"]}>
+          <ProtectedRoute>
             <Client />
           </ProtectedRoute>
         }
-      /> */}
+      />
     </Routes>
   )
 }
@@ -35,6 +37,7 @@ const App = () => {
       <Suspense fallback={loading}>
         <AppRoutes />
       </Suspense>
+      <ToastContainer />
     </BrowserRouter>
   )
 }
