@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
 import { Link, useLocation } from "react-router-dom"
 
 const THEMES = {
@@ -58,6 +59,8 @@ const DashboardLayout = ({
   const [isMobile, setIsMobile] = useState(false)
   const [isHeaderSticky, setHeaderSticky] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+
+  const { user } = useSelector((state) => state.app?.userMngmt || {})
 
   const location = useLocation()
   const themeColors = THEMES[theme] || THEMES.green
@@ -172,7 +175,7 @@ const DashboardLayout = ({
                     {title}
                   </h1>
                   <p className="text-emerald-200/60 text-xs text-center">
-                    Admin Portal
+                    Client Portal
                   </p>
                 </div>
               )}
@@ -249,15 +252,15 @@ const DashboardLayout = ({
                 <div className="flex items-center gap-3 px-2">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                     <span className="text-emerald-200 text-xs sm:text-sm font-bold">
-                      C
+                      CJ
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-xs sm:text-sm font-medium truncate">
-                      Client User
+                      {user.name}
                     </p>
                     <p className="text-emerald-200/60 text-[10px] sm:text-xs truncate">
-                      Client@creditjambo.com
+                      {user.email}
                     </p>
                   </div>
                 </div>

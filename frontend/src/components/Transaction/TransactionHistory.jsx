@@ -155,7 +155,6 @@ const TransactionHistory = () => {
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Search Transactions
@@ -331,7 +330,6 @@ const TransactionHistory = () => {
           )}
         </div>
 
-        {/* Use the new TransactionModal component */}
         <TransactionModal
           transaction={selectedTransaction}
           onClose={() => setSelectedTransaction(null)}

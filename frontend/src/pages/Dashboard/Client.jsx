@@ -1,4 +1,9 @@
-import { Gauge, ShieldCheck, Users } from "lucide-react"
+import {
+  ArrowRightLeft,
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  Gauge
+} from "lucide-react"
 import { Route, Routes } from "react-router-dom"
 import AppNavBar from "../../components/AppNavBar"
 import ClientDashboard from "../../components/ClientDashboard/ClientDashboard"
@@ -15,17 +20,17 @@ const menuItems = [
   },
   {
     name: "Deposit",
-    icon: <ShieldCheck size={14} />,
+    icon: <BanknoteArrowUp size={14} />,
     path: "/dashboard/deposit"
   },
   {
     name: "Withdraw",
-    icon: <Users size={14} />,
+    icon: <BanknoteArrowDown size={14} />,
     path: "/dashboard/withdraw"
   },
   {
     name: "Transaction",
-    icon: <Users size={14} />,
+    icon: <ArrowRightLeft size={14} />,
     path: "/dashboard/transaction-history"
   }
 ]
@@ -35,7 +40,7 @@ const Client = () => {
     <>
       <DashboardLayout
         menuItems={menuItems}
-        title="Admin"
+        title="Client"
         variant="admin"
         breakpoint="lg"
         initialSidebarState={true}

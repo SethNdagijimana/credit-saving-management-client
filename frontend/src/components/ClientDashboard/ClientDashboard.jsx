@@ -7,64 +7,27 @@ import {
   TrendingDown,
   TrendingUp
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
+import getTransactionsAction from "../../actions/transaction-action/transaction-action"
 
 const ClientDashboard = () => {
+  const { user } = useSelector((state) => state?.app?.userMngmt || {})
+  const { transactions = [] } = useSelector(
+    (state) => state.app?.transactionMngmt
+  )
+
   const [showBalance, setShowBalance] = useState(true)
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
-  // Mock user data
-  const user = {
-    fullName: "John Doe",
-    email: "john.doe@example.com",
-    accountNumber: "ACC-2024-001",
-    balance: 5420.5,
-    accountType: "Savings Account",
-    memberSince: "January 2024"
-  }
+  const [currentPage, setCurrentPage] = useState(1)
+  const limit = 5
 
-  // Recent transactions (limited to 5 for dashboard)
-  const recentTransactions = [
-    {
-      id: 5,
-      type: "deposit",
-      amount: 4270.5,
-      description: "Transfer from savings",
-      date: "2024-10-29",
-      status: "completed"
-    },
-    {
-      id: 4,
-      type: "withdrawal",
-      amount: 150,
-      description: "Online purchase",
-      date: "2024-10-28",
-      status: "completed"
-    },
-    {
-      id: 3,
-      type: "deposit",
-      amount: 500,
-      description: "Salary credit",
-      date: "2024-10-27",
-      status: "completed"
-    },
-    {
-      id: 2,
-      type: "withdrawal",
-      amount: 200,
-      description: "ATM withdrawal",
-      date: "2024-10-26",
-      status: "completed"
-    },
-    {
-      id: 1,
-      type: "deposit",
-      amount: 1000,
-      description: "Initial deposit",
-      date: "2024-10-25",
-      status: "completed"
-    }
-  ]
+  useEffect(() => {
+    dispatch(getTransactionsAction({ page: currentPage, limit }))
+  }, [dispatch, currentPage])
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -79,14 +42,11 @@ const ClientDashboard = () => {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-3xl font-bold mb-2">
-                  Welcome back, {user.fullName.split(" ")[0]}! 👋
+                  Welcome back, {user.name}! 👋
                 </h2>
                 <p className="text-blue-100 flex items-center space-x-2">
                   <CreditCard size={16} />
-                  <span>{user.accountNumber}</span>
-                  <span className="text-xs bg-blue-400 px-2 py-1 rounded">
-                    {user.accountType}
-                  </span>
+                  <span>{user.account_number}</span>
                 </p>
               </div>
               <button
@@ -100,17 +60,12 @@ const ClientDashboard = () => {
             <div className="mb-2">
               <p className="text-blue-100 text-sm mb-1">Available Balance</p>
               <h3 className="text-5xl font-bold">
-                {showBalance ? `$${user.balance.toFixed(2)}` : "******"}
+                {showBalance ? `RWF${user.balance}` : "******"}
               </h3>
             </div>
-
-            <p className="text-blue-100 text-sm">
-              Member since {user.memberSince}
-            </p>
           </div>
         </div>
 
-        {/* Low Balance Warning */}
         {user.balance < 1000 && (
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-r-lg">
             <div className="flex items-center">
@@ -123,7 +78,7 @@ const ClientDashboard = () => {
                   Low Balance Warning
                 </p>
                 <p className="text-yellow-700 text-sm">
-                  Your account balance is below $1,000. Consider depositing
+                  Your account balance is below RWF 1,000. Consider depositing
                   funds to avoid service interruptions.
                 </p>
               </div>
@@ -131,10 +86,11 @@ const ClientDashboard = () => {
           </div>
         )}
 
-        {/* Quick Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Deposit */}
-          <button className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition transform hover:-translate-y-1">
+          <button
+            className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition transform hover:-translate-y-1"
+            onClick={() => navigate("/dashboard/deposit")}
+          >
             <div className="flex items-center space-x-4">
               <div className="bg-green-100 p-4 rounded-xl">
                 <TrendingUp className="text-green-600" size={32} />
@@ -147,7 +103,10 @@ const ClientDashboard = () => {
           </button>
 
           {/* Withdraw */}
-          <button className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition transform hover:-translate-y-1">
+          <button
+            className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition transform hover:-translate-y-1"
+            onClick={() => navigate("/dashboard/withdraw")}
+          >
             <div className="flex items-center space-x-4">
               <div className="bg-red-100 p-4 rounded-xl">
                 <TrendingDown className="text-red-600" size={32} />
@@ -160,7 +119,10 @@ const ClientDashboard = () => {
           </button>
 
           {/* Transaction History */}
-          <button className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition transform hover:-translate-y-1">
+          <button
+            className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition transform hover:-translate-y-1"
+            onClick={() => navigate("/dashboard/transaction-history")}
+          >
             <div className="flex items-center space-x-4">
               <div className="bg-blue-100 p-4 rounded-xl">
                 <Activity className="text-blue-600" size={32} />
@@ -184,58 +146,71 @@ const ClientDashboard = () => {
             </button>
           </div>
 
-          {recentTransactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <div className="text-center py-12">
               <Activity size={48} className="mx-auto mb-4 text-gray-300" />
               <p className="text-gray-500">No transactions yet</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {recentTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div
-                      className={`p-3 rounded-lg ${
-                        transaction.type === "deposit"
-                          ? "bg-green-100"
-                          : "bg-red-100"
-                      }`}
-                    >
-                      {transaction.type === "deposit" ? (
-                        <TrendingUp className="text-green-600" size={24} />
-                      ) : (
-                        <TrendingDown className="text-red-600" size={24} />
-                      )}
+              {transactions
+                .slice()
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+                )
+                .slice(0, 5)
+                .map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div
+                        className={`p-3 rounded-lg ${
+                          transaction.type === "deposit"
+                            ? "bg-green-100"
+                            : "bg-red-100"
+                        }`}
+                      >
+                        {transaction.type === "deposit" ? (
+                          <TrendingUp className="text-green-600" size={24} />
+                        ) : (
+                          <TrendingDown className="text-red-600" size={24} />
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {transaction.description?.trim()
+                            ? transaction.description
+                            : "No description for this transaction"}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {transaction.createdAt
+                            ? new Date(transaction.createdAt).toLocaleString()
+                            : "Date unavailable"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-800">
-                        {transaction.description}
+
+                    <div className="text-right">
+                      <p
+                        className={`text-lg font-bold ${
+                          transaction.type === "deposit"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {transaction.type === "deposit" ? "+" : "-"}$
+                        {Number(transaction.amount).toFixed(2)}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {transaction.date}
-                      </p>
+                      <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded">
+                        {transaction.status || "Completed"}
+                      </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-lg font-bold ${
-                        transaction.type === "deposit"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {transaction.type === "deposit" ? "+" : "-"}$
-                      {transaction.amount.toFixed(2)}
-                    </p>
-                    <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded">
-                      {transaction.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
