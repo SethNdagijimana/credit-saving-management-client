@@ -1,25 +1,32 @@
 openapi: 3.0.0
 info:
   title: Credit Jambo Client API
-  version: "1.0.0"
-  description: API for client authentication, savings deposits, withdrawals and transaction tracking.
-
+  version: 1.1.0
+  description: >
+    Credit Jambo Client API allows users to register, log in, deposit, withdraw,
+    and view transaction history. It also supports notification retrieval and
+    marking as read.
 servers:
-  - url: http://localhost:5002/api
+  - url: "http://localhost:5002/api"
     description: Local Development Server
-
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
+    deviceHeader:
+      type: apiKey
+      in: header
+      name: x-device-id
+      description: Unique identifier for the user's device.
   schemas:
-    # ---------------- AUTH ----------------
     RegisterUser:
       type: object
-      required: [name, email, password]
+      required:
+        - name
+        - email
+        - password
       properties:
         name:
           type: string
@@ -28,68 +35,105 @@ components:
           format: email
         password:
           type: string
-
+          minLength: 6
     LoginUser:
       type: object
-      required: [email, password]
+      required:
+        - email
+        - password
       properties:
         email:
           type: string
           format: email
         password:
           type: string
-
     AuthResponse:
       type: object
       properties:
-        message:
+        accessToken:
           type: string
-        token:
+        refreshToken:
           type: string
-
-    # ---------------- SAVINGS ----------------
+          nullable: true
+        deviceId:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+            phone_number:
+              type: string
+            verified:
+              type: boolean
+            account_number:
+              type: string
+            balance:
+              type: string
     TransactionRequest:
       type: object
-      required: [amount]
+      required:
+        - amount
       properties:
         amount:
           type: number
-          minimum: 0.01
+          example: 5000
         description:
           type: string
-
+          example: Monthly deposit
+        method:
+          type: string
+          enum:
+            - bank_transfer
+            - instant_transfer
+            - atm
+        pin:
+          type: string
+          example: "1234"
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        type:
+          type: string
+          enum:
+            - deposit
+            - withdraw
+        amount:
+          type: number
+          example: 5000
+        description:
+          type: string
+          example: Deposit from mobile app
+        userId:
+          type: integer
+        userName:
+          type: string
+        oldBalance:
+          type: number
+        newBalance:
+          type: number
+        accountNumber:
+          type: string
+        deviceId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     TransactionResponse:
       type: object
       properties:
         message:
           type: string
+          example: Deposit successful
         transaction:
-          type: object
-          properties:
-            id:
-              type: integer
-            type:
-              type: string
-              enum: [deposit, withdraw]
-            amount:
-              type: number
-            description:
-              type: string
-            userId:
-              type: integer
-            userName:
-              type: string
-            oldBalance:
-              type: number
-            newBalance:
-              type: number
-            accountNumber:
-              type: string
-            deviceId:
-              type: string
-            createdAt:
-              type: string
-              format: date-time
+          $ref: "#/components/schemas/Transaction"
         account:
           type: object
           properties:
@@ -97,7 +141,6 @@ components:
               type: string
             balance:
               type: number
-
     PaginatedTransactionsResponse:
       type: object
       properties:
@@ -106,30 +149,53 @@ components:
           properties:
             page:
               type: integer
+              example: 1
             limit:
               type: integer
+              example: 10
             total:
               type: integer
+              example: 50
             totalPages:
               type: integer
+              example: 5
         transactions:
           type: array
           items:
-            $ref: "#/components/schemas/TransactionResponse/properties/transaction"
-
+            $ref: "#/components/schemas/Transaction"
+    Notification: null
+  type: object
+  properties:
+    id:
+      type: integer
+    user_id:
+      type: integer
+    type:
+      type: string
+      example: withdraw
+    message:
+      type: string
+      example: "Your withdrawal of RWF 10,000 was successful."
+    is_read:
+      type: boolean
+    created_at:
+      type: string
+      format: date-time
 tags:
   - name: Auth
     description: Authentication & user identity routes
   - name: Savings
-    description: Deposit, withdrawal, and financial transactions
+    description: "Deposit, withdrawal, and transaction operations"
+  - name: Notifications
+    description: User notification endpoints
   - name: Admin
     description: Admin-only routes
-
 paths:
   /auth/register:
     post:
       summary: Register a new user
-      tags: [Auth]
+      tags:
+        - Auth
       requestBody:
         required: true
         content:
@@ -141,11 +207,11 @@ paths:
           description: Registration successful
         "400":
           description: Email already exists
-
   /auth/login:
     post:
-      summary: User login with JWT issuance
-      tags: [Auth]
+      summary: User login and JWT issuance
+      tags:
+        - Auth
       requestBody:
         required: true
         content:
@@ -159,13 +225,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
-
   /savings/deposit:
     post:
-      summary: Deposit money
-      tags: [Savings]
+      summary: Deposit money into your account
+      tags:
+        - Savings
       security:
         - bearerAuth: []
+        - deviceHeader: []
       requestBody:
         required: true
         content:
@@ -179,13 +246,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionResponse"
-
   /savings/withdraw:
     post:
-      summary: Withdraw money
-      tags: [Savings]
+      summary: Withdraw money from your account
+      tags:
+        - Savings
       security:
         - bearerAuth: []
+        - deviceHeader: []
       requestBody:
         required: true
         content:
@@ -199,13 +267,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionResponse"
-
   /savings/transactions:
     get:
-      summary: Get user transaction history with pagination
-      tags: [Savings]
+      summary: Get paginated transaction history
+      tags:
+        - Savings
       security:
         - bearerAuth: []
+        - deviceHeader: []
       parameters:
         - name: page
           in: query
@@ -219,16 +288,48 @@ paths:
             default: 10
       responses:
         "200":
-          description: List of transactions with pagination data
+          description: Paginated transactions list
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PaginatedTransactionsResponse"
-
+  /notifications:
+    get:
+      summary: Get all notifications for logged-in user
+      tags:
+        - Notifications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsResponse"
+  /mark-read:
+    patch:
+      summary: Mark all notifications as read
+      tags:
+        - Notifications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Notifications marked as read
   /users:
     get:
-      summary: Get all users (ADMIN ONLY)
-      tags: [Admin]
+      summary: Get all users (Admin only)
+      tags:
+        - Admin
       security:
         - bearerAuth: []
       responses:
