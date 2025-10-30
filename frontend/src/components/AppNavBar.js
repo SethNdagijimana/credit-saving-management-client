@@ -3,6 +3,10 @@ import { useEffect, useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { LOGOUT } from "../actions/login-action/login-action"
+import {
+  getNotificationsAction,
+  markReadAction
+} from "../actions/notification-action/notification-action"
 
 const AppNavBar = () => {
   const navigate = useNavigate()
@@ -10,26 +14,40 @@ const AppNavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
 
-  // Safely access Redux state with fallbacks
   const userMngmt = useSelector((state) => state?.app?.userMngmt || {})
   const user = userMngmt.user || null
-  const notifications = userMngmt.notifications || []
 
-  // Calculate unread count using useMemo to avoid recalculation on every render
+  const { notifications = [] } = useSelector(
+    (state) => state.app?.notificationMngmt || {}
+  )
+
+  useEffect(() => {
+    dispatch(getNotificationsAction())
+  }, [dispatch])
+
   const unreadCount = useMemo(() => {
     if (!Array.isArray(notifications)) return 0
-    return notifications.filter((n) => n && !n.is_read).length
+    return notifications.filter((n) => !n.is_read).length
   }, [notifications])
 
-  // Close dropdowns when clicking outside
+  const handleToggleNotifications = (e) => {
+    e.stopPropagation()
+    const nextState = !showNotifications
+    setShowNotifications(nextState)
+
+    if (nextState && unreadCount > 0) {
+      dispatch(markReadAction()).then(() => {
+        dispatch(getNotificationsAction())
+      })
+    }
+  }
+
   useEffect(() => {
     const closeDropdown = (e) => {
-      // Close profile menu
       if (!e.target.closest(".profile-menu")) {
         setIsMenuOpen(false)
       }
 
-      // Close notifications menu
       if (
         !e.target.closest(".notif-menu") &&
         !e.target.closest(".notif-button")
@@ -42,37 +60,29 @@ const AppNavBar = () => {
     return () => document.removeEventListener("click", closeDropdown)
   }, [])
 
+  const handleMarkAllRead = (e) => {
+    e.stopPropagation()
+    dispatch(markReadAction()).then(() => {
+      dispatch(getNotificationsAction())
+    })
+  }
+
   const handleLogout = () => {
     dispatch({ type: LOGOUT })
     navigate("/")
-  }
-
-  const handleToggleNotifications = (e) => {
-    e.stopPropagation()
-    setShowNotifications((prev) => !prev)
-  }
-
-  const handleMarkAllRead = (e) => {
-    e.stopPropagation()
-    // TODO: dispatch action to mark all as read on backend
-    // dispatch(markAllNotificationsReadAction())
-    console.log("Mark all as read")
   }
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo/Brand */}
           <div className="flex items-center">
             <span className="text-lg md:text-2xl font-bold text-primary dark:text-white">
               Welcome to Credit Jambo
             </span>
           </div>
 
-          {/* Right side - Notifications, User name, Profile menu */}
           <div className="flex items-center space-x-4">
-            {/* Notifications button */}
             <div className="relative notif-menu">
               <button
                 onClick={handleToggleNotifications}
@@ -88,7 +98,6 @@ const AppNavBar = () => {
                 )}
               </button>
 
-              {/* Notification panel */}
               {showNotifications && (
                 <div className="origin-top-right absolute right-0 mt-2 w-80 sm:w-96 max-h-[70vh] overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                   <div className="flex items-center justify-between p-3 border-b dark:border-gray-700">
@@ -148,7 +157,6 @@ const AppNavBar = () => {
                                       : "bg-gray-100 dark:bg-gray-600"
                                   }`}
                                 >
-                                  {/* Icon by type */}
                                   {n.type === "withdraw" ? (
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
@@ -194,7 +202,7 @@ const AppNavBar = () => {
                                             : "text-gray-700 dark:text-gray-300"
                                         }`}
                                       >
-                                        {n.user_name || n.email || "User"}
+                                        {user.name || user.email || "me"}
                                       </div>
                                       <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
                                         {n.message || "No message"}
@@ -237,14 +245,12 @@ const AppNavBar = () => {
               )}
             </div>
 
-            {/* User name - hidden on mobile */}
             {user && (
               <span className="text-gray-700 dark:text-gray-300 hidden sm:inline font-medium">
                 {user.name || user.email || "User"}
               </span>
             )}
 
-            {/* Profile menu */}
             <div className="relative profile-menu">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
