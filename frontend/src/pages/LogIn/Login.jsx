@@ -92,7 +92,7 @@ const Login = () => {
     try {
       const result = await dispatch(loginUser(formData)).unwrap()
 
-      if (result?.token && result?.user) {
+      if (result?.accessToken && result?.user) {
         setFormData({ email: "", password: "" })
         navigate("/dashboard")
       } else {

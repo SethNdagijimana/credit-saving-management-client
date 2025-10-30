@@ -118,10 +118,11 @@ const userManagementSlice = createSlice({
         state.success = true
         state.error = false
 
-        const { user, accessToken, refreshToken } = action.payload
+        const { user, accessToken, refreshToken, deviceId } = action.payload
 
-        localStorage.setItem("accessToken", accessToken)
+        if (accessToken) localStorage.setItem("accessToken", accessToken)
         if (refreshToken) localStorage.setItem("refreshToken", refreshToken)
+        if (deviceId) localStorage.setItem("deviceId", deviceId)
         localStorage.setItem("user", JSON.stringify(user))
 
         state.tokens = { access: accessToken, refresh: refreshToken || null }

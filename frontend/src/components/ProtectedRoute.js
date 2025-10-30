@@ -4,21 +4,20 @@ import { Navigate, useLocation } from "react-router-dom"
 import { initializeAuth } from "../slices/user_management_slice"
 import Loading from "./Loading"
 
-function ProtectedRoute({ children, requiredType }) {
-  const [isLoading, setIsLoading] = useState(true)
+function ProtectedRoute({ children }) {
+  const [isInitialized, setIsInitialized] = useState(false)
   const dispatch = useDispatch()
   const location = useLocation()
 
-  const { isAuthenticated, user } = useSelector(
-    (state) => state.app.userMngmt || {}
-  )
+  const { isAuthenticated } = useSelector((state) => state.app.userMngmt || {})
 
   useEffect(() => {
     dispatch(initializeAuth())
-    setIsLoading(false)
+
+    setTimeout(() => setIsInitialized(true), 200)
   }, [dispatch])
 
-  if (isLoading) {
+  if (!isInitialized) {
     return <Loading />
   }
 

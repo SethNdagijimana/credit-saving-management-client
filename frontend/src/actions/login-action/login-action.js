@@ -21,7 +21,26 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await apiCall.post("/auth/login", credentials)
-      return response.data
+      const data = response.data
+
+      if (data?.token) {
+        localStorage.setItem("accessToken", data.token)
+      }
+
+      if (data?.deviceId) {
+        localStorage.setItem("deviceId", data.deviceId)
+      }
+
+      if (data?.user) {
+        localStorage.setItem("user", JSON.stringify(data.user))
+      }
+
+      return {
+        user: data.user,
+        accessToken: data.token,
+        refreshToken: null,
+        deviceId: data.deviceId
+      }
     } catch (error) {
       const message =
         error.response?.data?.message ||

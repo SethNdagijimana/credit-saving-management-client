@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { depositAction } from "../actions/deposit-action/deposit-action"
 
 const checkAuth = () => {
   const accessToken = localStorage.getItem("accessToken")
@@ -27,67 +28,49 @@ const initialState = {
   isAuthenticated: checkAuth(),
   loading: false,
   success: false,
-  error: false
+  error: false,
+  message: ""
 }
 
 const depositManagementSlice = createSlice({
   name: "depositMngmt",
   initialState,
   reducers: {
-    initializeAuth: (state) => {
-      const accessToken = localStorage.getItem("accessToken")
-      const user = localStorage.getItem("user")
-
-      if (accessToken && user) {
-        try {
-          const refreshToken = localStorage.getItem("refreshToken")
-          state.tokens = refreshToken
-            ? { access: accessToken, refresh: refreshToken }
-            : { access: accessToken, refresh: null }
-          state.user = JSON.parse(user)
-          state.isAuthenticated = true
-        } catch (error) {
-          console.error("Error parsing user from localStorage:", error)
-          state.tokens = { access: null, refresh: null }
-          state.user = null
-          state.isAuthenticated = false
-        }
-      } else {
-        state.tokens = { access: null, refresh: null }
-        state.user = null
-        state.isAuthenticated = false
-      }
-    },
-
-    initializeSystemUser: (state) => {
-      return {
-        ...initialState,
-        user: state.user,
-        tokens: state.tokens,
-        isAuthenticated: state.isAuthenticated
-      }
-    },
-
-    logout: (state) => {
-      localStorage.removeItem("accessToken")
-      localStorage.removeItem("refreshToken")
-      localStorage.removeItem("user")
-      return {
-        ...initialState,
-        isAuthenticated: false,
-        user: null,
-        tokens: { access: null, refresh: null }
-      }
-    },
-
     clearError: (state) => {
       state.error = false
+      state.success = false
       state.message = ""
-      state.errorCode = ""
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(depositAction.pending, (state) => {
+        state.loading = true
+        state.success = false
+        state.error = false
+        state.message = ""
+      })
+      .addCase(depositAction.fulfilled, (state, action) => {
+        state.loading = false
+        state.success = true
+        state.error = false
+        state.message =
+          action.payload?.message || "Deposit completed successfully"
+
+        const updatedUser = JSON.parse(localStorage.getItem("user") || "{}")
+        if (updatedUser && action.payload?.account?.balance !== undefined) {
+          updatedUser.balance = action.payload.account.balance
+          localStorage.setItem("user", JSON.stringify(updatedUser))
+        }
+      })
+      .addCase(depositAction.rejected, (state, action) => {
+        state.loading = false
+        state.success = false
+        state.error = true
+        state.message = action.payload || "Deposit failed"
+      })
   }
 })
 
-export const { initializeSystemUser, logout, initializeAuth, clearError } =
-  depositManagementSlice.actions
+export const { clearError } = depositManagementSlice.actions
 export default depositManagementSlice.reducer
