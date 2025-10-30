@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom"
 import AppNavBar from "../../components/AppNavBar"
 import ClientDashboard from "../../components/ClientDashboard/ClientDashboard"
 import Deposit from "../../components/Deposit/Deposit"
+import TransactionHistory from "../../components/Transaction/TransactionHistory"
 import Withdraw from "../../components/Withdraw/Withdraw"
 import DashboardLayout from "./DashboardLayout"
 
@@ -48,7 +49,7 @@ const Client = () => {
               <Route path="/withdraw" element={<Withdraw />} />
               <Route
                 path="/transaction-history"
-                element={<div>transaction history</div>}
+                element={<TransactionHistory />}
               />
             </Routes>
           )
