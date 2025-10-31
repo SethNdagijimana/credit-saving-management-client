@@ -271,7 +271,7 @@ const DashboardLayout = ({
             ) : (
               <div className="text-center">
                 <div className="w-8 h-8 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-2">
-                  <span className="text-emerald-200 text-xs font-bold">A</span>
+                  <span className="text-emerald-200 text-xs font-bold">CJ</span>
                 </div>
                 <div className=" text-xs text-white">
                   {new Date().getFullYear()}
