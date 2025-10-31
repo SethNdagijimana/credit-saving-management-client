@@ -61,3 +61,26 @@ Note: JWT required for /savings/_ and /notifications/_
 │
 └── package.json
 ```
+
+### ⚙️ Integration Overview
+
+| Service        | Port    | Role                                 |
+| -------------- | ------- | ------------------------------------ |
+| Admin Backend  | `:5000` | Verify and manage users              |
+| Client Backend | `:5002` | Handle user actions and transactions |
+| Database       | `:5432` | Shared PostgreSQL instance           |
+
+```bash
+DB_URL=postgres://postgres:postgres@db:5432/credit_jambo
+
+
+| Table | Purpose | Shared |
+|--------|----------|--------|
+| `users` | Core user data and verification | ✅ |
+| `accounts` | Account balance tracking | ✅ |
+| `transactions` | Deposit and withdrawal logs | ✅ |
+| `notifications` | System and user alerts | ✅ |
+| `devices` | Tracks user login devices | ✅ |
+| `admins` | Admin credentials | 🚫 (Admin only) |
+| `savings` | Savings balance table | ✅ |
+```
